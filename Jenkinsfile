@@ -1,30 +1,40 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'pradhyumnjadhao/jenkins_demo'  
+        DOCKER_CREDENTIALS = 'docker-hub-credentials'  
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
                 git 'https://github.com/PradhyumnJadhao/jenkins_demo.git'
             }
         }
-        
-        stage('Setup Environment') {
+
+        stage('Build Docker Image') {
             steps {
                 sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
+                    docker build -t $DOCKER_IMAGE:latest .
                 '''
             }
         }
-        
-        stage('Run Tests') {
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo $DOCKER_PASSWORD | docker login -u pradhyumnjadhao --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
             steps {
                 sh '''
-                    . venv/bin/activate
-                    pytest StudentProject/app1/ StudentProject/app2/ --rootdir=.
-
+                    docker push $DOCKER_IMAGE:latest
                 '''
             }
         }

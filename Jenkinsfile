@@ -23,7 +23,8 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
-                    pytest src/ --rootdir=.
+                    pytest StudentProject/app1/ StudentProject/app2/ --rootdir=.
+
                 '''
             }
         }
